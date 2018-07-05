@@ -26,14 +26,14 @@
 
     <script>
       $(document).ready(function() {
-
+        const today = moment(new Date()).format().slice(0, 10);
         $('#calendar').fullCalendar({
           header: {
             left: 'prev,next today',
             center: 'title',
             right: 'month,agendaWeek,agendaDay'
           },
-          defaultDate: '2018-03-12',
+          defaultDate: today,
           navLinks: true, // can click day/week names to navigate views
           selectable: true,
           selectHelper: true,
@@ -49,6 +49,14 @@
               $('#calendar').fullCalendar('renderEvent', eventData, true); // stick? = true
             }
             $('#calendar').fullCalendar('unselect');
+          },
+          eventClick: function(calEvent, jsEvent, view) {
+            alert('Event: ' + calEvent.title);
+            alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
+            alert('View: ' + view.name);
+
+            // change the border color just for fun
+            $(this).css('border-color', 'red');
           },
           editable: true,
           eventLimit: true, // allow "more" link when too many events
