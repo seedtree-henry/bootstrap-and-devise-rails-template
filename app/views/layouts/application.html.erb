@@ -49,7 +49,7 @@
             $('#calendar').fullCalendar('unselect');
           },
           eventClick: function(calEvent, jsEvent, view) {
-            alert('Event: ' + calEvent.title);
+            alert('Event: ' + calEvent.description);
             alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
             alert('View: ' + view.name);
 
