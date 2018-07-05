@@ -18,19 +18,52 @@
       navLinks: true, // can click day/week names to navigate views
       selectable: true,
       selectHelper: true,
-      select: function(start, end) {
-        var title = prompt('Event Title:');
-        var eventData;
-        if (title) {
-          eventData = {
-            title: title,
-            start: start,
-            end: end
-          };
+      
+      select: async function(start, end) {
+        const {value: formValues} = await swal({
+          title: 'Multiple inputs',
+          html:
+          '<span>Title: </span></span><input id="swal-input1" class="swal2-input">' +
+          '<span>Description: </span><input id="swal-input2" class="swal2-input">' +
+          '<span>start Time: </span><input id="swal-input3" class="swal2-input">' +
+          '<span>end Time: </span><input id="swal-input4" class="swal2-input">',
+          focusConfirm: false,
+          preConfirm: () => {
+            return [
+              document.getElementById('swal-input1').value,
+              document.getElementById('swal-input2').value,
+              document.getElementById('swal-input3').value,
+              document.getElementById('swal-input4').value
+            ]
+          }
+        })
+
+        const date = new Date(start._i);
+        const year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+        if (month < 10) {
+          month = `0${month}`
+        }
+        if (day < 10) {
+          day = `0${day}`
+        }
+
+        const startTime = `${year}-${month}-${day}T${formValues[2]}:00`
+        const endTime = `${year}-${month}-${day}T${formValues[2]}:00`
+        var eventData = {
+          title: formValues[0],
+          description: formValues[1],
+          start: startTime,
+          end: endTime
+        };
+        if (eventData.title !== '' && eventData.start !== '' && eventData.end !== '') {
+          console.log(eventData);
           $('#calendar').fullCalendar('renderEvent', eventData, true); // stick? = true
         }
         $('#calendar').fullCalendar('unselect');
       },
+
       eventClick: function(calEvent, jsEvent, view) {
         alert('Event: ' + calEvent.description);
         alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
