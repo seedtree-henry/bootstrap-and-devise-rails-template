@@ -1,6 +1,7 @@
 class EventsController < ApplicationController
   before_action :set_event, only: [:show, :edit, :update, :destroy]
   before_action :authenticate_user!
+
   # GET /events
   # GET /events.json
   def index
@@ -35,6 +36,18 @@ class EventsController < ApplicationController
         format.json { render json: @event.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  def ajaxCreate
+    @event = Event.new
+    @event.user_id = params[:user_id].to_i
+    @event.title = params[:title]
+    @event.description = params[:description]
+    @event.start = params[:start]
+    @event.end = params[:end]
+    @event.save
+
+    render :json => { status: :ok }
   end
 
   # PATCH/PUT /events/1
