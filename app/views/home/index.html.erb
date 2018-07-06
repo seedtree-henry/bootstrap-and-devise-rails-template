@@ -3,6 +3,7 @@
 
 <%= javascript_tag "let events = #{@events.to_json}" %>
 <%= javascript_tag "const user_id = #{current_user.id}" %>
+
 <script>
   console.log(events);
   $(document).ready(function() {
@@ -21,7 +22,7 @@
 
       select: async function(start, end) {
 
-        let date, year, month, day;
+        let date, year, month, day, input1 , input2, input3, input4;
 
         if (typeof start._i == 'number') {
           console.log(start._i);
@@ -29,15 +30,37 @@
           year = date.getFullYear();
           month = twoDigit(date.getMonth() + 1);
           day = twoDigit(date.getDate());
+          input1 = '<span>Title: </span></span><input id="swal-input1" class="swal2-input">';
+          input2 = '<span>Description: </span><input id="swal-input2" class="swal2-input">';
+          input3 = '<span>start Time: </span><input id="swal-input3" class="swal2-input">';
+          input4 = '<span>end Time: </span><input id="swal-input4" class="swal2-input">';
+        } else {
+          console.log(start._i);
+          startDateAndTime = start._i;
+          endDateAndTime = end._i;
+          year = startDateAndTime[0];
+          month = twoDigit(startDateAndTime[1]+1);
+          day = twoDigit(startDateAndTime[2]);
+          startHrInput = twoDigit(startDateAndTime[3]);
+          startMinInput = twoDigit(startDateAndTime[4]);
+          endHrInput = twoDigit(endDateAndTime[3]);
+          endMinInput = twoDigit(endDateAndTime[4]);
+          input1 = `<span>Title: </span></span><input id="swal-input1" class="swal2-input">`;
+          input2 = `<span>Description: </span><input id="swal-input2" class="swal2-input"`;
+          input3 = `<span>start Time: </span><input id="swal-input3" class="swal2-input" value="${startHrInput}:${startMinInput}">`;
+          input4 = `<span>end Time: </span><input id="swal-input4" class="swal2-input" value="${endHrInput}:${endMinInput}">`;
         }
+
+        // week and day view does not work for this.
+        // as _i format of week and day views is different to month view.
 
         const {value: formValues} = await swal({
           title: 'Multiple inputs',
           html:
-          '<span>Title: </span></span><input id="swal-input1" class="swal2-input">' +
-          '<span>Description: </span><input id="swal-input2" class="swal2-input">' +
-          '<span>start Time: </span><input id="swal-input3" class="swal2-input">' +
-          '<span>end Time: </span><input id="swal-input4" class="swal2-input">',
+          input1 +
+          input2 +
+          input3 +
+          input4,
           focusConfirm: false,
           preConfirm: () => {
             return [
@@ -55,9 +78,6 @@
         let eventStartMin = twoDigit(formValues[2].split(':')[1]);
         let eventEndHr = twoDigit(formValues[3].split(':')[0]);
         let eventEndMin = twoDigit(formValues[3].split(':')[1]);
-
-        // week and day view does not work for this.
-        // as _i format of week and day views is different to month view.
 
         function twoDigit(value) {
           let validValue = Number(value);
