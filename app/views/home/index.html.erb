@@ -20,7 +20,17 @@
       selectHelper: true,
 
       select: async function(start, end) {
-        console.log(start);
+
+        let date, year, month, day;
+
+        if (typeof start._i == 'number') {
+          console.log(start._i);
+          date = new Date(start._i);
+          year = date.getFullYear();
+          month = twoDigit(date.getMonth() + 1);
+          day = twoDigit(date.getDate());
+        }
+
         const {value: formValues} = await swal({
           title: 'Multiple inputs',
           html:
@@ -46,15 +56,13 @@
         let eventEndHr = twoDigit(formValues[3].split(':')[0]);
         let eventEndMin = twoDigit(formValues[3].split(':')[1]);
 
-        const date = new Date(start._i);
-        const year = date.getFullYear();
-        let month = twoDigit(date.getMonth() + 1);
-        let day = twoDigit(date.getDate());
+        // week and day view does not work for this.
+        // as _i format of week and day views is different to month view.
 
         function twoDigit(value) {
-          let validValue = value;
-          if (value < 10) {
-            validValue = `0${value}`
+          let validValue = Number(value);
+          if (validValue < 10) {
+            validValue = `0${validValue}`
           }
           return validValue
         }
