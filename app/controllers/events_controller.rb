@@ -64,6 +64,18 @@ class EventsController < ApplicationController
     end
   end
 
+  def ajaxUpdate
+    @event = Event.find(params[:id])
+    @event.user_id = params[:user_id].to_i
+    @event.title = params[:title]
+    @event.description = params[:description]
+    @event.start = params[:start]
+    @event.end = params[:end]
+    @event.save
+
+    render :json => { status: :ok }
+  end
+
   # DELETE /events/1
   # DELETE /events/1.json
   def destroy

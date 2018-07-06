@@ -5,9 +5,9 @@
 <%= javascript_tag "const user_id = #{current_user.id}" %>
 
 <script>
-  console.log(events);
   $(document).ready(function() {
     const today = moment(new Date()).format().slice(0, 10);
+    let id = events[events.length - 1].id;
 
     $('#calendar').fullCalendar({
       header: {
@@ -22,20 +22,20 @@
 
       select: async function(start, end) {
 
-        let date, year, month, day, input1 , input2, input3, input4;
+        let year, month, day, input1 , input2, input3, input4;
+        let startDateAndTime, endDateAndTime;
+        let startHrInput, startMinInput, endHrInput, endMinInput;
 
         if (typeof start._i == 'number') {
-          console.log(start._i);
-          date = new Date(start._i);
-          year = date.getFullYear();
-          month = twoDigit(date.getMonth() + 1);
-          day = twoDigit(date.getDate());
+          let dateConverted = new Date(start._i);
+          year = dateConverted.getFullYear();
+          month = twoDigit(dateConverted.getMonth() + 1);
+          day = twoDigit(dateConverted.getDate());
           input1 = '<span>Title: </span></span><input id="swal-input1" class="swal2-input">';
           input2 = '<span>Description: </span><input id="swal-input2" class="swal2-input">';
           input3 = '<span>start Time: </span><input id="swal-input3" class="swal2-input">';
           input4 = '<span>end Time: </span><input id="swal-input4" class="swal2-input">';
         } else {
-          console.log(start._i);
           startDateAndTime = start._i;
           endDateAndTime = end._i;
           year = startDateAndTime[0];
@@ -55,7 +55,7 @@
         // as _i format of week and day views is different to month view.
 
         const {value: formValues} = await swal({
-          title: 'Multiple inputs',
+          title: 'New Event',
           html:
           input1 +
           input2 +
@@ -90,21 +90,22 @@
         const startTime = `${year}-${month}-${day}T${eventStartHr}:${eventStartMin}:00`
         const endTime = `${year}-${month}-${day}T${eventEndHr}:${eventEndMin}:00`
         var eventData = {
+          id: id + 1,
           title: eventTitle,
           description: eventDescription,
           start: startTime,
           end: endTime,
           user_id: user_id
         };
-        console.log(eventData);
         if (eventData.title !== '' && eventData.start !== '' && eventData.end !== '') {
           $.ajax({
-            url: '/events/ajax',
+            url: '/ajax/events',
             headers: { 'X-CSRF-Token': '<%= form_authenticity_token.to_s %>' },
             method: 'POST',
             data: eventData
           })
           .then(function () {
+              id = id + 1;
               $('#calendar').fullCalendar('renderEvent', eventData, true); // stick? = true
               $('#calendar').fullCalendar('unselect');
             })
@@ -114,13 +115,101 @@
         }
       },
 
-      eventClick: function(calEvent, jsEvent, view) {
-        alert('Event: ' + calEvent.description);
-        alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
-        alert('View: ' + view.name);
+      eventClick: async function(calEvent, jsEvent, view) {
+
+        let startBeforeEdit = calEvent.start._i;
+        let endBeforeEdit = calEvent.end._i;
+        let eventId = calEvent.id;
+
+        let date, input1 , input2, input3, input4;
+        let oldTitle, oldDescription;
+        let startHrInput, startMinInput, endHrInput, endMinInput;
+
+        date = startBeforeEdit.slice(0,10);
+
+        oldTitle = calEvent.title;
+        oldDescription = calEvent.description;
+        startHrInput = startBeforeEdit.slice(11,13);
+        startMinInput = startBeforeEdit.slice(14,16);
+        endHrInput = endBeforeEdit.slice(11,13);
+        endMinInput = endBeforeEdit.slice(14,16);
+
+        input1 = `<span>Title: </span></span><input id="swal-input1" class="swal2-input" value="${oldTitle}">`;
+        input2 = `<span>Description: </span><input id="swal-input2" class="swal2-input" value="${oldDescription}">`;
+        input3 = `<span>start Time: </span><input id="swal-input3" class="swal2-input" value="${startHrInput}:${startMinInput}">`;
+        input4 = `<span>end Time: </span><input id="swal-input4" class="swal2-input" value="${endHrInput}:${endMinInput}">`;
+
+        const {value: formValues} = await swal({
+          title: 'Edit Event',
+          html:
+          input1 +
+          input2 +
+          input3 +
+          input4,
+          focusConfirm: false,
+          preConfirm: () => {
+            return [
+              document.getElementById('swal-input1').value,
+              document.getElementById('swal-input2').value,
+              document.getElementById('swal-input3').value,
+              document.getElementById('swal-input4').value
+            ]
+          }
+        })
+
+        let eventTitle = formValues[0]
+        let eventDescription = formValues[1]
+        let eventStartHr = twoDigit(formValues[2].split(':')[0]);
+        let eventStartMin = twoDigit(formValues[2].split(':')[1]);
+        let eventEndHr = twoDigit(formValues[3].split(':')[0]);
+        let eventEndMin = twoDigit(formValues[3].split(':')[1]);
+
+        function twoDigit(value) {
+          let validValue = Number(value);
+          if (validValue < 10) {
+            validValue = `0${validValue}`
+          }
+          return validValue
+        }
+
+        const startTime = `${date}T${eventStartHr}:${eventStartMin}:00`
+        const endTime = `${date}T${eventEndHr}:${eventEndMin}:00`
+        var eventData = {
+          id: eventId,
+          title: eventTitle,
+          description: eventDescription,
+          start: startTime,
+          end: endTime,
+          user_id: user_id
+        };
+
+        if (eventData.title !== '' && eventData.start !== '' && eventData.end !== '') {
+          $.ajax({
+            url: '/ajax/events',
+            headers: { 'X-CSRF-Token': '<%= form_authenticity_token.to_s %>' },
+            method: 'PUT',
+            data: eventData
+          })
+          .then(function () {
+              $('#calendar').fullCalendar('removeEvents', [id]);
+              $('#calendar').fullCalendar('renderEvent', eventData); // stick? = true
+              $('#calendar').fullCalendar('unselect');
+            })
+            .catch(function () {
+              alert("Failed to save the data.");
+            })
+        }
 
         // change the border color just for fun
         $(this).css('border-color', 'red');
+
+        function twoDigit(value) {
+          let validValue = Number(value);
+          if (validValue < 10) {
+            validValue = `0${validValue}`
+          }
+          return validValue
+        }
       },
       editable: true,
       eventLimit: true, // allow "more" link when too many events

@@ -28,7 +28,8 @@
 
 Rails.application.routes.draw do
   resources :events
-  post '/events/ajax' => 'events#ajaxCreate'
+  post '/ajax/events' => 'events#ajaxCreate'
+  put '/ajax/events' => 'events#ajaxUpdate'
   root 'home#index'
   devise_for :users
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
