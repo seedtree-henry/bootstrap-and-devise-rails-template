@@ -7,7 +7,13 @@
 <script>
   $(document).ready(function() {
     const today = moment(new Date()).format().slice(0, 10);
-    let id = events[events.length - 1].id;
+    let id;
+    if (events.length > 0) {
+      id = events[events.length - 1].id;
+    } else {
+      id = 0;
+    }
+
 
     $('#calendar').fullCalendar({
       header: {
